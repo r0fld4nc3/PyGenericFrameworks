@@ -8,8 +8,8 @@ The aim of the repository is to serve as a base to come and collect modules for 
 
 # Overview of modules
 
-- Logging
-- Settings
-- Singleton
-- ThreadedTasks
-- GitHub Updater/Checker
+- [Logging](https://github.com/r0fld4nc3/PyGenericFrameworks/tree/main/Frameworks/Logging)
+- [Settings](https://github.com/r0fld4nc3/PyGenericFrameworks/tree/main/Frameworks/Settings)
+- [Singleton](https://github.com/r0fld4nc3/PyGenericFrameworks/tree/main/Frameworks/Singleton)
+- [ThreadedTasks](https://github.com/r0fld4nc3/PyGenericFrameworks/tree/main/Frameworks/ThreadedTasks)
+- [GitHub Updater/Checker](https://github.com/r0fld4nc3/PyGenericFrameworks/tree/main/Frameworks/Updater)
