@@ -4,7 +4,7 @@ A collection of generic Python frameworks/modules to be easily accessed and impl
 
 The aim of the repository is to serve as a base to come and collect modules for the different projects and be able to quickly set them up and adapt them to each project's needs.
 
-## Description of modules inside each module
+#### - Description of modules inside each module
 
 # Overview of modules
 
