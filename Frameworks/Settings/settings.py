@@ -120,6 +120,12 @@ class Settings:
                 settings.pop(setting)
                 print(f"Cleared unused settings key: {setting}")
 
+        # Add non existant settings
+        for k, v in self.patcher_settings.items():
+            if k not in settings:
+                settings[k] = v
+                print(f"Added {k}: {v}")
+
         with open(self.config_file, 'w', encoding="utf-8") as config_file:
             config_file.write(json.dumps(settings, indent=2))
             print(f"Saved cleaned config: {self.config_file}")
