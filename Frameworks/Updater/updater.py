@@ -1,4 +1,5 @@
 import requests
+import time
 
 # TODO: Import logger here
 # TODO: Optional: Import global configs
@@ -21,6 +22,8 @@ class Updater:
         self._assets_tag = "assets"
         self._download_url = "browser_download_url"
 
+        self.last_checked_timestamp: int = 0
+
         self.download_location = "" # Local disk location to save the downloaded file.
 
         self.local_version = "0.0.0" # Default version, should be dynamically substituted.
@@ -34,6 +37,8 @@ class Updater:
         else:
             print("No releases available")
             return False
+        
+        self.last_checked_timestamp = int(time.time())
 
         return has_new_version
     
