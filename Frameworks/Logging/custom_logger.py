@@ -1,9 +1,11 @@
 import logging
 import pathlib
+from os import makedirs
 
 Path = pathlib.Path
 
-log_file = "my_app_log.log"
+CONFIG_FOLDER = Path.cwd()
+LOG_FILE = CONFIG_FOLDER / "my_app_log.log"
 
 LEVELS = {
     0: logging.DEBUG,
@@ -13,12 +15,16 @@ LEVELS = {
 }
 
 def create_logger(logger_name: str, level: int) -> logging.Logger:
+    # Create needed folder if it doesn't exist
+    if not CONFIG_FOLDER.exists():
+        makedirs(CONFIG_FOLDER, exist_ok=True)
+
     logger = logging.getLogger(logger_name)
 
     logger.setLevel(LEVELS.get(level, 1))
 
     handler_stream = logging.StreamHandler()
-    handler_file = logging.FileHandler(log_file)
+    handler_file = logging.FileHandler(LOG_FILE)
 
     formatter = logging.Formatter("[%(name)s] [%(asctime)s] [%(levelname)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
     handler_stream.setFormatter(formatter)
@@ -31,6 +37,6 @@ def create_logger(logger_name: str, level: int) -> logging.Logger:
 
 
 def reset_log_file() -> None:
-    if Path(log_file).exists():
-        with open(log_file, 'w') as f:
+    if Path(LOG_FILE).exists():
+        with open(LOG_FILE, 'w') as f:
             f.write('')
