@@ -1,10 +1,10 @@
-# Threaded Tasks
+# Threaded Queue
 
-A implementation of a Threaded/Queue system for parallel thread-safe task run. Useful for example, for GUI's.
+An implementation of a Threaded/Queue system for parallel thread-safe task run. Useful for example, for GUI's.
 
 You will see `TODO` comments sprinkled around. These are guides to help with the setup process so you know what needs to be altered.
 
-## Edit the Settings class to suit your needs
+## Edit the ThreadedQueue class to suit your needs
 
 `ThreadedQueue` comes with `print` statements by default. You may or should replace them with a logger, so it's useful to pair with the Logger module.
 
