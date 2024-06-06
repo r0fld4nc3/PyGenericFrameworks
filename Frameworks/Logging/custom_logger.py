@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 import pathlib
 from os import makedirs
 
@@ -25,13 +26,17 @@ def create_logger(logger_name: str, level: int) -> logging.Logger:
 
     handler_stream = logging.StreamHandler()
     handler_file = logging.FileHandler(LOG_FILE)
-
+    
     formatter = logging.Formatter("[%(name)s] [%(asctime)s] [%(levelname)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
     handler_stream.setFormatter(formatter)
     handler_file.setFormatter(formatter)
-
-    logger.addHandler(handler_stream)
-    logger.addHandler(handler_file)
+    
+    # Add the handlers if not present already
+    if not any(isinstance(handler, logging.StreamHandler) for handler in logger.handlers):
+        logger.addHandler(handler_stream)
+    
+    if not any(isinstance(handler, logging.FileHandler) and handler.baseFilename == LOG_FILE for handler in logger.handlers):
+        logger.addHandler(handler_file)
 
     return logger
 
