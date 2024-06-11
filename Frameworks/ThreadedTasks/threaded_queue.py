@@ -8,7 +8,7 @@ import threading
 # TODO: Replace print() calls with logger calls
 
 class ThreadedQueue:
-    def __init__(self, num_workers: int = 2):
+    def __init__(self, num_workers: int=2):
         self._task_queue: queue = queue.Queue()
         self._results_queue = queue.Queue()
         if num_workers < 1:
@@ -16,8 +16,9 @@ class ThreadedQueue:
         self._num_workers: int = num_workers
         self._workers: list = []
         self._total_jobs = 0
+        self._stopped = True
 
-        print(f"Init with {self._num_workers} workers")
+        print(f"Init with {self._workers} workers")
 
     @property
     def task_queue(self):
@@ -48,6 +49,8 @@ class ThreadedQueue:
 
     def start_workers(self):
         print("Starting workers")
+
+        self._stopped = False
         for _ in range(self._num_workers):
             print(f"threading.Thread(target={self.worker_function})")
             worker = threading.Thread(target=self.worker_function)
@@ -56,12 +59,12 @@ class ThreadedQueue:
             self._workers.append(worker)
 
     def worker_function(self):
-        while True:
-            print("Checking")
+        while not self._stopped:
+            print("Checking for tasks")
+
             # Blocks until a task becomes available
             task = self._task_queue.get()
-            if task is None:
-                break
+
             if isinstance(task, tuple):
                 func, args, kwargs = task
                 try:
@@ -71,13 +74,15 @@ class ThreadedQueue:
                     self._task_queue.task_done()
                 except Exception as e:
                     if e is None:
-                        print(f"{e}\n {' ' * 45}{'^' * len(str(e))} Could likely be ignored, normal shutown behaviour")
+                        print(f"{e}\n {' ' * 45}{'^' * len(str(e))}")
                     result = e
                 self._task_queue.put(result)
                 self._results_queue.put(result)
-            else:
+            elif task is None:
                 # Exit gracefully
-                self._task_queue.put(None)
+                self._task_queue.task_done()
+            else:
+                print(f"Task of else: {task}")
 
     def add_task(self, func, *args, **kwargs):
         print(f"Adding task: {func}, {args}, {kwargs}")
@@ -86,16 +91,18 @@ class ThreadedQueue:
 
     def stop_workers(self):
         print(f"Stopping workers ({self._num_workers})")
+
+        self._stopped = True
+
         for _ in range(self._num_workers):
             print("Stopping")
             self.add_task(None)
 
-    @staticmethod
-    def new_queue(self) -> queue.Queue:
-        return queue.Queue()
-
     def empty(self) -> bool:
         return self._task_queue.qsize() == 0
+
+    def task_queue_size(self) -> int:
+        return self._task_queue.qsize()
 
     def results_queue_size(self) -> int:
         return self._results_queue.qsize()
