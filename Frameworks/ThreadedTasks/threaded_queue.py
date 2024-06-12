@@ -10,12 +10,13 @@ import threading
 class ThreadedQueue:
     def __init__(self, num_workers: int=2):
         self._task_queue: queue = queue.Queue()
-        self._results_queue = queue.Queue()
+        # self._results_queue = queue.Queue()
         if num_workers < 1:
             num_workers = 2
         self._num_workers: int = num_workers
         self._workers: list = []
         self._total_jobs = 0
+        self._completed_jobs = 0
         self._stopped = True
 
         print(f"Init with {self._workers} workers")
@@ -24,9 +25,9 @@ class ThreadedQueue:
     def task_queue(self):
         return self._task_queue
 
-    @property
-    def results_queue(self):
-        return self._results_queue
+    # @property
+    # def results_queue(self):
+    #     return self._results_queue
 
     @property
     def num_workers(self):
@@ -46,6 +47,26 @@ class ThreadedQueue:
     @property
     def jobs(self):
         return self._total_jobs
+    
+    @property
+    def empty(self) -> bool:
+        return self._task_queue.qsize() == 0
+
+    @property
+    def task_queue_size(self) -> int:
+        return self._task_queue.qsize()
+    
+    # @property
+    # def results_queue_size(self) -> int:
+    #     return self._results_queue.qsize()
+
+    @property
+    def completed_jobs(self):
+        return self._completed_jobs
+    
+    @property
+    def jobs_finished(self) -> bool:
+        return (self.empty and (self._completed_jobs >= self._total_jobs)) or self._stopped
 
     def start_workers(self):
         print("Starting workers")
@@ -69,20 +90,21 @@ class ThreadedQueue:
                 func, args, kwargs = task
                 try:
                     result = func(*args, **kwargs)
-                    if result is None:
-                        result = False
-                    self._task_queue.task_done()
                 except Exception as e:
                     if e is None:
                         print(f"{e}\n {' ' * 45}{'^' * len(str(e))}")
                     result = e
-                self._task_queue.put(result)
-                self._results_queue.put(result)
             elif task is None:
                 # Exit gracefully
+                # self._results_queue.put(result)
                 self._task_queue.task_done()
+                break
             else:
                 print(f"Task of else: {task}")
+            
+            # self._results_queue.put(result)
+            self._task_queue.task_done()
+            self._completed_jobs += 1
 
     def add_task(self, func, *args, **kwargs):
         print(f"Adding task: {func}, {args}, {kwargs}")
@@ -106,12 +128,3 @@ class ThreadedQueue:
 
     def results_queue_size(self) -> int:
         return self._results_queue.qsize()
-
-    def jobs_finished(self) -> bool:
-        return self.empty() and self.results_queue_size() == self._total_jobs
-
-    def restart_counts(self):
-        self._task_queue: queue = queue.Queue()
-        self._results_queue = queue.Queue()
-        self._workers: list = []
-        self._total_jobs = 0
