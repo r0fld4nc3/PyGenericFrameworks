@@ -7,6 +7,7 @@ import threading
 # TODO: Create/Assign Logger here
 # TODO: Replace print() calls with logger calls
 
+
 class ThreadedQueue:
     def __init__(self, num_workers: int=2):
         self._task_queue: queue = queue.Queue()
@@ -47,7 +48,7 @@ class ThreadedQueue:
     @property
     def jobs(self):
         return self._total_jobs
-    
+
     @property
     def empty(self) -> bool:
         return self._task_queue.qsize() == 0
@@ -55,7 +56,7 @@ class ThreadedQueue:
     @property
     def task_queue_size(self) -> int:
         return self._task_queue.qsize()
-    
+
     # @property
     # def results_queue_size(self) -> int:
     #     return self._results_queue.qsize()
@@ -63,7 +64,7 @@ class ThreadedQueue:
     @property
     def completed_jobs(self):
         return self._completed_jobs
-    
+
     @property
     def jobs_finished(self) -> bool:
         return (self.empty and (self._completed_jobs >= self._total_jobs)) or self._stopped
@@ -101,7 +102,7 @@ class ThreadedQueue:
                 break
             else:
                 print(f"Task of else: {task}")
-            
+
             # self._results_queue.put(result)
             self._task_queue.task_done()
             self._completed_jobs += 1
@@ -120,11 +121,3 @@ class ThreadedQueue:
             print("Stopping")
             self.add_task(None)
 
-    def empty(self) -> bool:
-        return self._task_queue.qsize() == 0
-
-    def task_queue_size(self) -> int:
-        return self._task_queue.qsize()
-
-    def results_queue_size(self) -> int:
-        return self._results_queue.qsize()
