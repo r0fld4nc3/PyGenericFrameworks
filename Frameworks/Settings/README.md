@@ -18,7 +18,7 @@ To do so, these are the basic steps:
 
 In the other modules, you can simply import it like this example
 ```
-from source_folder.your_settings_folder.settings import Settings
+from source_folder.your_settings_folder import Settings
 ```
 And define it where you need to
 ```

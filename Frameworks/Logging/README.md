@@ -8,7 +8,7 @@ You should rename this file to a more appropriate name for your project. The fol
 
 In the other modules, you can simply import it like this example
 ```
-from source_folder.your_logger_folder.custom_logger import create_logger
+from source_folder.your_logger_folder import create_logger
 ```
 And define it where you need to
 ```
@@ -28,5 +28,5 @@ The logger levels from 0 through 3 correspond to most logging to more cherry-pic
 If you need to reset the log file, you can also import the method to do so and just call it when you need it
 
 ```
-from source_folder.your_logger_folder.custom_logger import reset_log_file
+from source_folder.your_logger_folder import reset_log_file
 ```

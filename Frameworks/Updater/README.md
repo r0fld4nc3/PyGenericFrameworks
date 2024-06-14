@@ -30,7 +30,7 @@ You may extend it further with the included methods and variables for the API ca
 
 In the other modules, you can simply import it like this example
 ```
-from source_folder.updater.updater import Updater
+from source_folder.updater import Updater
 ```
 And define it where you need to, giving it your GitHub username and GitHub repository name
 

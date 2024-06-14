@@ -13,7 +13,7 @@ You will see `TODO` comments sprinkled around. These are guides to help with the
 
 In the other modules, you can simply import it like this example
 ```
-from source_folder.utils.threaded_task import ThreadedQueue
+from source_folder.utils import ThreadedQueue
 ```
 And define it where you need to
 ```
