@@ -44,6 +44,18 @@ def get_home_folder() -> Path:
     return Path(os.path.expanduser('~'))
 
 
+def get_env_tempdir() -> Path:
+    if "windows" in _SYSTEM:
+        _tempdir = win_get_localappdata() / "Temp"
+    else:
+        _tempdir = unix_get_share_folder() / "temp"
+
+    # Ensure path exists
+    ensure_paths(_tempdir)
+
+    return _tempdir
+
+
 def get_os_env_config_folder() -> Path:
     if _windows in _SYSTEM:
         print("Target System Windows")
@@ -60,6 +72,31 @@ def get_os_env_config_folder() -> Path:
         print(_SYSTEM)
         _config_folder = Path.cwd()
 
+    ensure_paths(_config_folder)
     print(f"Config folder: {_config_folder}")
 
     return _config_folder
+
+
+def ensure_paths(to_path: Path):
+    if isinstance(to_path, Path):
+        if not to_path.exists():
+            if to_path.suffix:
+                # It's a file
+                os.makedirs(to_path.parent, exist_ok=True)
+            else:
+                # It's a directory
+                os.makedirs(to_path, exist_ok=True)
+    elif isinstance(to_path, str):
+        if not os.path.exists(to_path):
+            if str(to_path).rpartition('.')[-1]:
+                # We have a file
+                os.makedirs(to_path.rpartition('.')[0])
+            else:
+                os.makedirs(to_path)
+
+    return Path(to_path)
+
+
+def system() -> str:
+    return _SYSTEM
