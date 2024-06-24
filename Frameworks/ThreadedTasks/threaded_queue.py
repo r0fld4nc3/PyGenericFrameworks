@@ -1,5 +1,6 @@
 import queue
 import threading
+from time import time, sleep
 
 # TODO: Import logger here
 # TODO: Optional: Import global configs
@@ -11,7 +12,7 @@ import threading
 class ThreadedQueue:
     def __init__(self, num_workers: int=2):
         self._task_queue: queue = queue.Queue()
-        # self._results_queue = queue.Queue()
+        self._results_queue = queue.Queue()
         if num_workers < 1:
             num_workers = 2
         self._num_workers: int = num_workers
@@ -25,10 +26,6 @@ class ThreadedQueue:
     @property
     def task_queue(self):
         return self._task_queue
-
-    # @property
-    # def results_queue(self):
-    #     return self._results_queue
 
     @property
     def num_workers(self):
@@ -57,9 +54,17 @@ class ThreadedQueue:
     def task_queue_size(self) -> int:
         return self._task_queue.qsize()
 
-    # @property
-    # def results_queue_size(self) -> int:
-    #     return self._results_queue.qsize()
+    @property
+    def results(self) -> list:
+        return self._results_queue.queue
+
+    @property
+    def results_queue(self):
+        return self._results_queue
+
+    @property
+    def results_queue_size(self) -> int:
+        return self._results_queue.qsize()
 
     @property
     def completed_jobs(self):
@@ -97,13 +102,15 @@ class ThreadedQueue:
                     result = e
             elif task is None:
                 # Exit gracefully
-                # self._results_queue.put(result)
+                self._results_queue.put(None)
                 self._task_queue.task_done()
                 break
             else:
                 print(f"Task of else: {task}")
+                result = None
 
-            # self._results_queue.put(result)
+
+            self._results_queue.put(result)
             self._task_queue.task_done()
             self._completed_jobs += 1
 
@@ -117,7 +124,25 @@ class ThreadedQueue:
 
         self._stopped = True
 
-        for _ in range(self._num_workers):
-            print("Stopping")
+        for worker in range(self._num_workers):
+            print(f"Stopping worker {worker}")
             self.add_task(None)
 
+    def await_tasks(self, timeout_added_seconds = 5):
+        while True and not self._stopped:
+            if self.jobs_finished:
+                print("Waiting task finished")
+                break
+            else:
+                timeout = int(time()) + timeout_added_seconds
+                print(f"New timeout {timeout}")
+
+            if int(time()) >= timeout:
+                print("SVN await timeout. Proceeding.")
+                break
+            else:
+                print(f"Awaiting...")
+
+            sleep(1)
+
+        return self.results
