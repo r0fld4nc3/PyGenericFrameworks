@@ -1,9 +1,7 @@
 import logging
 import logging.handlers
-import pathlib
 from os import makedirs
-
-Path = pathlib.Path
+from pathlib import Path
 
 CONFIG_FOLDER = Path.cwd()
 LOG_FILE = CONFIG_FOLDER / "my_app_log.log"

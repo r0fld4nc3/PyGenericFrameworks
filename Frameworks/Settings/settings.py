@@ -1,14 +1,13 @@
 import json
 import os
-import pathlib
 import sys
 import platform
+from pathlib import Path
 from typing import Union
 
 # TODO: Import logger here
 # TODO: Optional: Import Singleton class
 
-Path = pathlib.Path
 HOST: str = ""
 APP_FOLDER: str = ""
 APP_NAME: str = ""

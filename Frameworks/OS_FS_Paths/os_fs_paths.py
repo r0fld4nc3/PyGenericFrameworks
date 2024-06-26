@@ -1,8 +1,6 @@
 import os
-import pathlib
 import platform
-
-Path = pathlib.Path
+from pathlib import Path
 
 _windows = "windows"
 _linux = "linux"
