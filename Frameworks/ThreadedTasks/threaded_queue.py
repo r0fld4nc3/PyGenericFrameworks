@@ -1,3 +1,4 @@
+import sys
 import queue
 import threading
 from time import time, sleep
@@ -10,7 +11,7 @@ from time import time, sleep
 
 
 class ThreadedQueue:
-    def __init__(self, num_workers: int=2):
+    def __init__(self, num_workers: int = 2):
         self._task_queue: queue = queue.Queue()
         self._results_queue = queue.Queue()
         if num_workers < 1:
@@ -55,6 +56,10 @@ class ThreadedQueue:
         return self._task_queue.qsize()
 
     @property
+    def task_queue_simple_memsize(self) -> int:
+        return sys.getsizeof(self._task_queue)
+
+    @property
     def results(self) -> list:
         return self._results_queue.queue
 
@@ -65,6 +70,10 @@ class ThreadedQueue:
     @property
     def results_queue_size(self) -> int:
         return self._results_queue.qsize()
+
+    @property
+    def results_queue_simple_memsize(self) -> int:
+        return sys.getsizeof(self._results_queue)
 
     @property
     def completed_jobs(self):
@@ -127,6 +136,19 @@ class ThreadedQueue:
         for worker in range(self._num_workers):
             print(f"Stopping worker {worker}")
             self.add_task(None)
+
+    def renew(self) -> bool:
+        if not  self.jobs_finished:
+            print(f"Attempted to renew but jobs are not finished. Aborting renew.")
+            return False
+
+        print(f"Renewing queues")
+        self._task_queue: queue = queue.Queue()
+        self._results_queue = queue.Queue()
+        self._total_jobs = 0
+        self._completed_jobs = 0
+
+        return True
 
     def await_tasks(self, timeout_added_seconds = 5):
         while True and not self._stopped:
