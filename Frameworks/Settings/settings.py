@@ -73,7 +73,7 @@ class Settings:
         if self.config_dir == '' or not Path(self.config_dir).exists()\
                 or not Path(self.config_file).exists():
             print(f"Config does not exist.")
-            return {}
+            return self.settings
 
         self.clean_save_file()
 
@@ -109,6 +109,10 @@ class Settings:
 
         if not self.config_dir or not Path(self.config_dir).exists():
             print("No config folder found.")
+            return False
+
+        if not self.config_file.exists():
+            print("No config file to cleanup")
             return False
 
         with open(self.config_file, 'r', encoding="utf-8") as config_file:
