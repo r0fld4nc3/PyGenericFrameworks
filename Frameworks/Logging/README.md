@@ -1,4 +1,5 @@
 # Logging
+
 A simple file that handles basic-ish logging needs and can quickly get you up to speed with implementing a logger for the project.
 Replace the string bound to `log_fle` to your own log file name.
 

@@ -1,50 +1,53 @@
 import os
 from pathlib import Path
 import platform
+import subprocess
+import shutil
 
-_windows = "windows"
-_linux = "linux"
-_unix = "unix"
-_darwin = "darwin"
-_mac = "mac"
+WINDOWS = "windows"
+LINUX = "linux"
+UNIX = "unix"
+DARWIN = "darwin"
+MAC = "mac"
 
 
 def win_get_appdata() -> Path:
-    if _windows in system():
+    if os_windows():
         return Path(os.getenv("appdata"))
     else:
         return unix_get_share_folder()
 
 
 def win_get_localappdata() -> Path:
-    if _windows in system():
+    if os_windows():
         return Path(os.getenv("localappdata"))
     else:
         return unix_get_share_folder()
 
 
 def win_get_documents_folder() -> Path:
-    if _windows in system():
+    if os_windows():
         return get_home_folder() / "Documents"
     else:
         return unix_get_share_folder()
 
 
 def unix_get_share_folder() -> Path:
-    if _windows not in system():
+    if not os_windows():
         return unix_get_local_folder() / "share"
     else:
         return win_get_localappdata()
 
 
 def unix_get_local_folder() -> Path:
-    if _windows not in system():
+    if not os_windows():
         return get_home_folder() / ".local"
     else:
         return win_get_localappdata()
 
+
 def unix_get_config_folder() -> Path:
-    if _windows not in system():
+    if not os_windows():
         return get_home_folder() / ".config"
     else:
         return win_get_localappdata()
@@ -55,7 +58,7 @@ def get_home_folder() -> Path:
 
 
 def get_env_tempdir() -> Path:
-    if "windows" in system():
+    if os_windows():
         _tempdir = win_get_localappdata() / "Temp"
     else:
         _tempdir = unix_get_share_folder() / "temp"
@@ -67,13 +70,13 @@ def get_env_tempdir() -> Path:
 
 
 def get_os_env_config_folder() -> Path:
-    if _windows in system():
+    if os_windows():
         print("Target System Windows")
         _config_folder = win_get_localappdata()
-    elif _linux in system() or _unix in system():
+    elif os_linux():
         print("Target System Linux/Unix")
         _config_folder = unix_get_share_folder()
-    elif _darwin in system() or _mac in system():
+    elif os_darwin():
         print("Target System MacOS")
         # Write to user-writable locations, like ~/.local/share
         _config_folder = unix_get_share_folder()
@@ -118,5 +121,130 @@ def ensure_paths(to_path: Path):
     return Path(to_path)
 
 
+def get_system_drive() -> Path:
+    _drive = os.getenv("SystemDrive")
+    if os_windows():
+        _drive += "/"
+    else:
+        _drive = get_home_folder()
+    return Path(_drive)
+
+
+def get_temp_dir() -> Path:
+    if os_windows():
+        tmp_dir = Path(os.path.expandvars("%TEMP%"))
+    elif os_linux() or os_darwin():
+        tmp_dir = Path("/tmp")
+    else:
+        tmp_dir = Path(os.path.expanduser('~'))
+
+    return tmp_dir
+
+
+def os_linux() -> bool:
+    return system() in [LINUX, UNIX]
+
+
+def os_darwin() -> bool:
+    return system() in [DARWIN, MAC]
+
+
+def os_windows() -> bool:
+    return system() in [WINDOWS]
+
+
 def system() -> str:
     return platform.system().lower()
+
+
+def _get_clipboard_client() -> str:
+    # In MacOS it's pbcopy
+    # In Linux, it can be either xclip, xsel or both
+
+    clipboard_client = ''
+
+    if os_linux():
+        # Try with xclip
+        print("Checking clipboard client xclip")
+        _clip = "xclip"
+
+        output = subprocess.run([_clip], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        result = output.stdout.decode()
+
+        if "command not found" in result.lower():
+            print(f"{_clip} is not an option")
+        else:
+            clipboard_client = _clip
+            print(f"{_clip} passed!")
+
+        # Try with xsel
+        if not clipboard_client:
+            _clip = "xsel"
+
+            print(f"Checking clipboard client {_clip}")
+            output = subprocess.run([_clip], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            result = output.stdout.decode()
+
+            print(result)
+
+            if "command not found" in result.lower():
+                print(f"{_clip} is not an option. Out of options...")
+            else:
+                clipboard_client = _clip
+                print(f"{_clip} passed!")
+    elif os_darwin():
+        _clip = "pbcopy"
+        output = subprocess.run([_clip], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        result = output.stdout.decode()
+
+        if "command not found" in result.lower():
+            print(f"{_clip} is not an option. Out of options...")
+        else:
+            clipboard_client = _clip
+
+        print(result)
+    elif os_windows():
+        _clip = "clip"
+        clipboard_client = _clip
+    else:
+        print("Uh oh...")
+
+    return clipboard_client
+
+
+def send_to_clipboard(content: str) -> None:
+    clipboard_client = _get_clipboard_client()
+
+    if not clipboard_client:
+        return
+
+    temp_folder: Path = get_temp_dir() / ".temp_clipboard"
+    temp_file: Path = temp_folder / ".temp_clipboard.txt"
+
+    # Ensure path is created
+    os.makedirs(temp_folder, exist_ok=True)
+
+    with open(temp_file, 'w', encoding="utf-8") as tf:
+        tf.write(content)
+
+    if not os_windows():
+        command = [clipboard_client, "-sel", "clip <", str(temp_file)]
+    else:
+        command = f"{clipboard_client} < {str(temp_file)}"
+
+    if not command:
+        # Delete the temp file and folder
+        print(f"Deleting {temp_folder}")
+        shutil.rmtree(temp_folder, ignore_errors=True)
+        return
+
+    try:
+        subprocess.run(command)
+    except Exception as e:
+        print(e)
+
+    # Delete the temp file and folder
+    print(f"Deleting {temp_folder}")
+    shutil.rmtree(temp_folder, ignore_errors=True)
+
+    print(f"\nContents copied to clipboard!")

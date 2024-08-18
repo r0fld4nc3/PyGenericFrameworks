@@ -1,10 +1,9 @@
 import logging
-import logging.handlers
 from os import makedirs
 from pathlib import Path
 
 CONFIG_FOLDER = Path.cwd()
-LOG_FILE = CONFIG_FOLDER / "my_app_log.log"
+LOG_FILE = CONFIG_FOLDER / f"{__name__}.log"
 
 LEVELS = {
     0: logging.DEBUG,
@@ -12,6 +11,7 @@ LEVELS = {
     2: logging.WARNING,
     3: logging.ERROR
 }
+
 
 def create_logger(logger_name: str, level: int) -> logging.Logger:
     # Create needed folder if it doesn't exist
