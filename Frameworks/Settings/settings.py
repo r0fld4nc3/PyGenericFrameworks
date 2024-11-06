@@ -3,10 +3,8 @@ import os
 import sys
 import platform
 from pathlib import Path
-from typing import Union
 
 # TODO: Import logger here
-# TODO: Optional: Import Singleton class
 
 HOST: str = ""
 APP_FOLDER: str = ""
@@ -31,19 +29,28 @@ else:
     print(system)
     program_data_path = Path.cwd()
 
-config_folder = Path(program_data_path) / HOST / APP_FOLDER / APP_NAME
+CONFIG_FOLDER = Path(program_data_path) / HOST / APP_FOLDER / APP_NAME
 
-print(f"Config folder: {config_folder}")
+print(f"Config folder: {CONFIG_FOLDER}")
 
-# TODO: Optional: metaclass=Singleton
 class Settings:
-    def __init__(self):
-        self.settings = {
-            "app-version": "",
-        }
-        self._config_file_name = "-settings.json" # TODO: App Name suffix
-        self.config_dir = Path(config_folder)
-        self.config_file = Path(config_folder) / self._config_file_name
+    _instance = None
+    _loaded = False
+
+    KEY_APP_VERSION = "app-version"
+
+    settings = {
+        "app-version": "",
+    }
+    _config_file_name = "-settings.json" # TODO: App Name suffix
+    config_dir = Path(CONFIG_FOLDER)
+    config_file = Path(CONFIG_FOLDER) / _config_file_name
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Settings, cls).__new__(cls)
+            cls._instance.load_config()
+        return cls._instance
 
     def set_app_version(self, version: str):
         self.settings["app-version"] = version
@@ -70,28 +77,31 @@ class Settings:
         return self.config_file
 
     def load_config(self) -> dict:
-        if self.config_dir == '' or not Path(self.config_dir).exists()\
-                or not Path(self.config_file).exists():
-            print(f"Config does not exist.")
-            return self.settings
+        if not self._loaded:
+            if self.config_dir == '' or not Path(self.config_dir).exists()\
+                    or not Path(self.config_file).exists():
+                print(f"Config does not exist.")
+                return self.settings
 
-        self.clean_save_file()
+            self.clean_save_file()
 
-        print(f"Loading config {self.config_file}")
-        config_error = False
-        with open(self.config_file, 'r', encoding="utf-8") as config_file:
-            try:
-                self.settings = json.load(config_file)
-            except Exception as e:
-                print("An error occurred trying to read config file.")
-                print(e)
-                config_error = True
+            print(f"Loading config {self.config_file}")
+            config_error = False
+            with open(self.config_file, 'r', encoding="utf-8") as config_file:
+                try:
+                    self.settings = json.load(config_file)
+                except Exception as e:
+                    print("An error occurred trying to read config file.")
+                    print(e)
+                    config_error = True
 
-        if config_error:
-            print("Generating new config file.")
-            with open(self.config_file, 'w', encoding="utf-8") as config_file:
-                config_file.write(json.dumps(self.settings, indent=2))
-        print(self.settings)
+            if config_error:
+                print("Generating new config file.")
+                with open(self.config_file, 'w', encoding="utf-8") as config_file:
+                    config_file.write(json.dumps(self.settings, indent=2))
+            print(self.settings)
+
+            self._loaded = True
 
         return self.settings
 
@@ -117,17 +127,12 @@ class Settings:
 
         with open(self.config_file, 'r', encoding="utf-8") as config_file:
             settings = dict(json.load(config_file))
+            print(f"[clean_save_file] Loaded settings: {json.dumps(settings, indent=2)}")
 
         for setting in reversed(list(settings.keys())):
             if setting not in self.settings.keys():
                 settings.pop(setting)
                 print(f"Cleared unused settings key: {setting}")
-
-        # Add non existant settings
-        for k, v in self.patcher_settings.items():
-            if k not in settings:
-                settings[k] = v
-                print(f"Added {k}: {v}")
 
         with open(self.config_file, 'w', encoding="utf-8") as config_file:
             config_file.write(json.dumps(settings, indent=2))
